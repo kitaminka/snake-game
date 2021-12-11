@@ -74,7 +74,7 @@ func main() {
 
 	ch := make(chan bool)
 
-	go animationCycle(&f)
+	go animationCycle(&f, ch)
 	go gameCycle(&f, ch)
 
 	<-ch
@@ -112,7 +112,7 @@ func gameCycle(f *Field, ch chan bool) {
 		}
 	}
 }
-func animationCycle(f *Field) {
+func animationCycle(f *Field, ch chan bool) {
 	for {
 		f.DrawField()
 
@@ -125,6 +125,10 @@ func animationCycle(f *Field) {
 
 			f.snake.DrawSnake()
 			f.apples[i].DrawApple()
+		}
+
+		if f.snake.CheckSnake() {
+			ch <- true
 		}
 
 		(*f.screen).Show()
@@ -207,6 +211,16 @@ func (snake Snake) DrawSnake() {
 	for _, cell := range snake.tail {
 		cell.DrawCell(*snake.field.screen, SnakeSymbol, snake.style)
 	}
+}
+
+func (snake Snake) CheckSnake() bool {
+	for _, cell := range snake.tail {
+		if snake.head.x == cell.x && snake.head.y == cell.y {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (snake *Snake) MoveSnake(grow bool) {
