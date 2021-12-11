@@ -74,9 +74,10 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	f := newField(&s, width/2-50, 3, 100, 12, nil, defStyle)
+	//f := newField(&s, 0, 0, width, height, nil, defStyle)
 	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, 5, StartDelay, snakeStyle)
 	f.snake = &snake
-	newApple(&f, rand.Intn(f.width)+f.x, rand.Intn(f.height)+f.y, appleStyle)
+	newApple(&f, appleStyle)
 
 	gameOver := make(chan bool)
 
@@ -99,19 +100,18 @@ func gameCycle(f *Field, gameOver chan bool) {
 		case *tcell.EventResize:
 			s.Sync()
 		case *tcell.EventKey:
-			switch ev.Key() {
-			case tcell.KeyCtrlC:
+			if ev.Key() == tcell.KeyCtrlC {
 				gameOver <- true
-			case tcell.KeyDown:
+			} else if ev.Key() == tcell.KeyDown && (f.snake.direction.x != 0 && f.snake.direction.y != 1) {
 				f.snake.direction.y = 1
 				f.snake.direction.x = 0
-			case tcell.KeyUp:
+			} else if ev.Key() == tcell.KeyUp && (f.snake.direction.x != 0 && f.snake.direction.y != -1) {
 				f.snake.direction.y = -1
 				f.snake.direction.x = 0
-			case tcell.KeyRight:
+			} else if ev.Key() == tcell.KeyRight && (f.snake.direction.x != 1 && f.snake.direction.y != 0) {
 				f.snake.direction.y = 0
 				f.snake.direction.x = 1
-			case tcell.KeyLeft:
+			} else if ev.Key() == tcell.KeyLeft && (f.snake.direction.x != -1 && f.snake.direction.y != 0) {
 				f.snake.direction.y = 0
 				f.snake.direction.x = -1
 			}
@@ -131,7 +131,7 @@ func animationCycle(f *Field, gameOver chan bool) {
 					f.snake.delay -= DelayChange
 				}
 				if len(f.apples) < MaxApples && rand.Intn(NewAppleChance) == 1 {
-					newApple(f, rand.Intn(f.width)+f.x, rand.Intn(f.height)+f.y, f.apples[i].style)
+					newApple(f, f.apples[i].style)
 				}
 			}
 		}
@@ -271,11 +271,11 @@ func (snake *Snake) BorderTeleportation() {
 	}
 }
 
-func newApple(f *Field, x int, y int, style tcell.Style) Apple {
+func newApple(f *Field, style tcell.Style) Apple {
 	var apple Apple
-	apple.cell = Cell{x, y}
 	apple.style = style
 	apple.field = f
+	apple.MoveApple()
 	f.apples = append(f.apples, apple)
 
 	return apple
@@ -283,12 +283,30 @@ func newApple(f *Field, x int, y int, style tcell.Style) Apple {
 
 func (apple *Apple) UpdateApple() bool {
 	if apple.CheckApple() {
-		apple.cell.x = rand.Intn(apple.field.width) + apple.field.x
-		apple.cell.y = rand.Intn(apple.field.height) + apple.field.y
+		apple.MoveApple()
 		return true
 	}
 
 	return false
+}
+
+func (apple *Apple) MoveApple() {
+	touchSnake := true
+	snake := apple.field.snake
+
+	for touchSnake {
+		apple.cell.x = rand.Intn(apple.field.width) + apple.field.x
+		apple.cell.y = rand.Intn(apple.field.height) + apple.field.y
+
+		if snake.head.x != apple.cell.x && snake.head.y != apple.cell.y {
+			touchSnake = false
+		}
+		for _, cell := range snake.tail {
+			if cell.x != apple.cell.x && cell.y != apple.cell.y {
+				touchSnake = false
+			}
+		}
+	}
 }
 
 func (apple Apple) CheckApple() bool {
