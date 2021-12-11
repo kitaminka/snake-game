@@ -115,3 +115,7 @@ func (snake Snake) DrawSnake() {
 		cell.DrawCell(snake.field.screen, '0', snake.style)
 	}
 }
+
+func (snake Snake) MoveSnake() {
+	// Some code here
+}
