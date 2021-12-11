@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+const FieldSymbol = '-'
+const SnakeSymbol = '0'
+
+const DefaultColor = tcell.ColorWhite
+const SnakeColor = tcell.ColorDarkGreen
+
 type Cell struct {
 	x int
 	y int
@@ -43,8 +49,8 @@ func main() {
 
 	width, _ := s.Size()
 
-	defStyle := tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorWhite)
-	snakeStyle := tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDarkGreen)
+	defStyle := tcell.StyleDefault.Foreground(DefaultColor)
+	snakeStyle := tcell.StyleDefault.Foreground(SnakeColor)
 	//appleStyle := tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorRed)
 
 	drawText(s, width/2-5, 1, width/2+5, 1, defStyle, "Snake Game")
@@ -148,7 +154,7 @@ func (c Cell) DrawCell(s tcell.Screen, symbol rune, style tcell.Style) {
 
 func (f Field) DrawField() {
 	for _, c := range f.cells {
-		c.DrawCell(*f.screen, '-', f.style)
+		c.DrawCell(*f.screen, FieldSymbol, f.style)
 	}
 }
 
@@ -170,9 +176,9 @@ func newSnake(f Field, x int, y int, length int, style tcell.Style) Snake {
 }
 
 func (snake Snake) DrawSnake() {
-	snake.head.DrawCell(*snake.field.screen, '0', snake.style)
+	snake.head.DrawCell(*snake.field.screen, SnakeSymbol, snake.style)
 	for _, cell := range snake.tail {
-		cell.DrawCell(*snake.field.screen, '0', snake.style)
+		cell.DrawCell(*snake.field.screen, SnakeSymbol, snake.style)
 	}
 }
 
