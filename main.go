@@ -16,6 +16,10 @@ const DefaultColor = tcell.ColorWhite
 const SnakeColor = tcell.ColorDarkGreen
 const AppleColor = tcell.ColorRed
 
+const StartDelay time.Duration = 100
+const MaxApples = 3
+const NewAppleChance = 5
+
 type Cell struct {
 	x int
 	y int
@@ -68,22 +72,22 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	f := newField(&s, width/2-50, 3, 100, 12, nil, defStyle)
-	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, 5, snakeStyle)
+	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, 5, StartDelay, snakeStyle)
 	f.snake = &snake
 	newApple(&f, rand.Intn(f.width)+f.x, rand.Intn(f.height)+f.y, appleStyle)
 
-	ch := make(chan bool)
+	gameOver := make(chan bool)
 
-	go animationCycle(&f, ch)
-	go gameCycle(&f, ch)
+	go animationCycle(&f, gameOver)
+	go gameCycle(&f, gameOver)
 
-	<-ch
+	<-gameOver
 
 	s.Fini()
 	os.Exit(0)
 }
 
-func gameCycle(f *Field, ch chan bool) {
+func gameCycle(f *Field, gameOver chan bool) {
 	for {
 		s := *f.screen
 
@@ -95,7 +99,7 @@ func gameCycle(f *Field, ch chan bool) {
 		case *tcell.EventKey:
 			switch ev.Key() {
 			case tcell.KeyCtrlC:
-				ch <- true
+				gameOver <- true
 			case tcell.KeyDown:
 				f.snake.direction.y = 1
 				f.snake.direction.x = 0
@@ -112,23 +116,30 @@ func gameCycle(f *Field, ch chan bool) {
 		}
 	}
 }
-func animationCycle(f *Field, ch chan bool) {
+func animationCycle(f *Field, gameOver chan bool) {
 	for {
 		f.DrawField()
 
+		grow := false
+
 		for i := range f.apples {
 			if f.apples[i].UpdateApple() {
-				f.snake.MoveSnake(true)
-			} else {
-				f.snake.MoveSnake(false)
+				grow = true
+				if len(f.apples) < MaxApples && rand.Intn(NewAppleChance) == 1 {
+					newApple(f, rand.Intn(f.width)+f.x, rand.Intn(f.height)+f.y, f.apples[i].style)
+				}
 			}
+		}
 
-			f.snake.DrawSnake()
-			f.apples[i].DrawApple()
+		f.snake.MoveSnake(grow)
+		f.snake.DrawSnake()
+
+		for _, apple := range f.apples {
+			apple.DrawApple()
 		}
 
 		if f.snake.CheckSnake() {
-			ch <- true
+			gameOver <- true
 		}
 
 		(*f.screen).Show()
@@ -188,7 +199,7 @@ func (f Field) DrawField() {
 	}
 }
 
-func newSnake(f *Field, x int, y int, length int, style tcell.Style) Snake {
+func newSnake(f *Field, x int, y int, length int, delay time.Duration, style tcell.Style) Snake {
 	var snake Snake
 	snake.field = f
 	snake.head = Cell{x, y}
@@ -196,7 +207,7 @@ func newSnake(f *Field, x int, y int, length int, style tcell.Style) Snake {
 	snake.style = style
 	snake.direction.y = -1
 	snake.direction.x = 0
-	snake.delay = 100
+	snake.delay = delay
 
 	for i := range snake.tail {
 		snake.tail[i] = Cell{x, y + i + 1}
