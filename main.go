@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gdamore/tcell"
 	"log"
+	"os"
+	"time"
 )
 
 type Cell struct {
@@ -49,15 +51,43 @@ func main() {
 	f.DrawField()
 
 	snake := newSnake(f, f.x+f.width/2, f.y+f.height/2, 5, snakeStyle)
-	//fmt.Println(snake.tail)
-	//fmt.Println(snake.head)
-	snake.MoveSnake()
-	snake.MoveSnake()
 	snake.DrawSnake()
-	//fmt.Println(snake.tail)
-	//fmt.Println(snake.head)
-	//snake.DrawSnake()
-	s.Show()
+	go animationCycle(&snake)
+	for {
+		ev := s.PollEvent()
+
+		switch ev := ev.(type) {
+		case *tcell.EventResize:
+			s.Sync()
+		case *tcell.EventKey:
+			if ev.Key() == tcell.KeyCtrlC {
+				s.Fini()
+				os.Exit(0)
+			} else if ev.Key() == tcell.KeyUp {
+				snake.direction.y = -1
+				snake.direction.x = 0
+			} else if ev.Key() == tcell.KeyDown {
+				snake.direction.y = 1
+				snake.direction.x = 0
+			} else if ev.Key() == tcell.KeyRight {
+				snake.direction.y = 0
+				snake.direction.x = 1
+			} else if ev.Key() == tcell.KeyLeft {
+				snake.direction.y = 0
+				snake.direction.x = -1
+			}
+		}
+	}
+}
+
+func animationCycle(snake *Snake) {
+	for {
+		<-time.After(100 * time.Millisecond)
+		snake.MoveSnake()
+		snake.field.DrawField()
+		snake.DrawSnake()
+		snake.field.screen.Show()
+	}
 }
 
 func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
@@ -116,8 +146,8 @@ func newSnake(f Field, x int, y int, length int, style tcell.Style) Snake {
 	snake.head = Cell{x, y}
 	snake.tail = make([]Cell, length-1)
 	snake.style = style
-	snake.direction.y = 0
-	snake.direction.x = 1
+	snake.direction.y = -1
+	snake.direction.x = 0
 	for i := range snake.tail {
 		snake.tail[i] = Cell{x, y + i + 1}
 	}
