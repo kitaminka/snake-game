@@ -17,6 +17,8 @@ const SnakeColor = tcell.ColorDarkGreen
 const AppleColor = tcell.ColorRed
 
 const StartDelay time.Duration = 100
+const MinDelay time.Duration = 30
+const DelayChange time.Duration = 10
 const MaxApples = 3
 const NewAppleChance = 5
 
@@ -125,6 +127,9 @@ func animationCycle(f *Field, gameOver chan bool) {
 		for i := range f.apples {
 			if f.apples[i].UpdateApple() {
 				grow = true
+				if f.snake.delay > MinDelay {
+					f.snake.delay -= DelayChange
+				}
 				if len(f.apples) < MaxApples && rand.Intn(NewAppleChance) == 1 {
 					newApple(f, rand.Intn(f.width)+f.x, rand.Intn(f.height)+f.y, f.apples[i].style)
 				}
