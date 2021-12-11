@@ -177,6 +177,7 @@ func newSnake(f Field, x int, y int, length int, style tcell.Style) Snake {
 
 func (snake Snake) DrawSnake() {
 	snake.head.DrawCell(*snake.field.screen, SnakeSymbol, snake.style)
+
 	for _, cell := range snake.tail {
 		cell.DrawCell(*snake.field.screen, SnakeSymbol, snake.style)
 	}
@@ -184,6 +185,7 @@ func (snake Snake) DrawSnake() {
 
 func (snake *Snake) MoveSnake() {
 	var bufferCell Cell
+
 	for i := range snake.tail {
 		if i == 0 {
 			bufferCell, snake.tail[i] = snake.tail[i], snake.head
@@ -191,6 +193,21 @@ func (snake *Snake) MoveSnake() {
 			snake.tail[i], bufferCell = bufferCell, snake.tail[i]
 		}
 	}
+
 	snake.head.x += snake.direction.x
 	snake.head.y += snake.direction.y
+
+	snake.BorderTeleportation()
+}
+
+func (snake *Snake) BorderTeleportation() {
+	if snake.head.x < snake.field.x {
+		snake.head.x = snake.field.x + snake.field.width - 1
+	} else if snake.head.x >= snake.field.x+snake.field.width {
+		snake.head.x = snake.field.x
+	} else if snake.head.y < snake.field.y {
+		snake.head.y = snake.field.y + snake.field.height - 1
+	} else if snake.head.y >= snake.field.y+snake.field.height {
+		snake.head.y = snake.field.y
+	}
 }
