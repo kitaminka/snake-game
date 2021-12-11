@@ -3,15 +3,18 @@ package main
 import (
 	"github.com/gdamore/tcell"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 )
 
 const FieldSymbol = '-'
 const SnakeSymbol = '0'
+const AppleSymbol = '0'
 
 const DefaultColor = tcell.ColorWhite
 const SnakeColor = tcell.ColorDarkGreen
+const AppleColor = tcell.ColorRed
 
 type Cell struct {
 	x int
@@ -28,6 +31,11 @@ type Snake struct {
 	}
 	delay time.Duration
 }
+type Apple struct {
+	cell  Cell
+	style tcell.Style
+	field *Field
+}
 type Field struct {
 	x      int
 	y      int
@@ -36,6 +44,8 @@ type Field struct {
 	style  tcell.Style
 	cells  []Cell
 	screen *tcell.Screen
+	snake  *Snake
+	apples []*Apple
 }
 
 func main() {
@@ -51,17 +61,21 @@ func main() {
 
 	defStyle := tcell.StyleDefault.Foreground(DefaultColor)
 	snakeStyle := tcell.StyleDefault.Foreground(SnakeColor)
-	//appleStyle := tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorRed)
+	appleStyle := tcell.StyleDefault.Foreground(AppleColor)
 
 	drawText(s, width/2-5, 1, width/2+5, 1, defStyle, "Snake Game")
 
-	f := newField(&s, width/2-50, 3, 100, 12, defStyle)
-	snake := newSnake(f, f.x+f.width/2, f.y+f.height/2, 5, snakeStyle)
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	f := newField(&s, width/2-50, 3, 100, 12, nil, defStyle)
+	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, 5, snakeStyle)
+	f.snake = &snake
+	newApple(&f, rand.Intn(f.width)+f.x, rand.Intn(f.height)+f.y, appleStyle)
 
 	ch := make(chan bool)
 
-	go animationCycle(&snake)
-	go gameCycle(&snake, ch)
+	go animationCycle(&f)
+	go gameCycle(&f, ch)
 
 	<-ch
 
@@ -69,9 +83,9 @@ func main() {
 	os.Exit(0)
 }
 
-func gameCycle(snake *Snake, ch chan bool) {
+func gameCycle(f *Field, ch chan bool) {
 	for {
-		s := *snake.field.screen
+		s := *f.screen
 
 		ev := s.PollEvent()
 
@@ -83,28 +97,35 @@ func gameCycle(snake *Snake, ch chan bool) {
 			case tcell.KeyCtrlC:
 				ch <- true
 			case tcell.KeyDown:
-				snake.direction.y = 1
-				snake.direction.x = 0
+				f.snake.direction.y = 1
+				f.snake.direction.x = 0
 			case tcell.KeyUp:
-				snake.direction.y = -1
-				snake.direction.x = 0
+				f.snake.direction.y = -1
+				f.snake.direction.x = 0
 			case tcell.KeyRight:
-				snake.direction.y = 0
-				snake.direction.x = 1
+				f.snake.direction.y = 0
+				f.snake.direction.x = 1
 			case tcell.KeyLeft:
-				snake.direction.y = 0
-				snake.direction.x = -1
+				f.snake.direction.y = 0
+				f.snake.direction.x = -1
 			}
 		}
 	}
 }
-func animationCycle(snake *Snake) {
+func animationCycle(f *Field) {
 	for {
-		snake.field.DrawField()
-		snake.DrawSnake()
-		snake.MoveSnake()
-		(*snake.field.screen).Show()
-		<-time.After(time.Millisecond * snake.delay)
+		f.DrawField()
+		f.snake.MoveSnake()
+		f.snake.DrawSnake()
+
+		for _, apple := range f.apples {
+			apple.UpdateApple()
+			apple.DrawApple()
+		}
+
+		(*f.screen).Show()
+
+		<-time.After(time.Millisecond * f.snake.delay)
 	}
 }
 
@@ -124,7 +145,7 @@ func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string
 	}
 }
 
-func newField(s *tcell.Screen, x int, y int, width int, height int, style tcell.Style) Field {
+func newField(s *tcell.Screen, x int, y int, width int, height int, snake *Snake, style tcell.Style) Field {
 	var f Field
 	f.x = x
 	f.y = y
@@ -132,6 +153,7 @@ func newField(s *tcell.Screen, x int, y int, width int, height int, style tcell.
 	f.height = height
 	f.style = style
 	f.screen = s
+	f.snake = snake
 	f.cells = make([]Cell, width*height)
 
 	var dx, dy int
@@ -158,9 +180,9 @@ func (f Field) DrawField() {
 	}
 }
 
-func newSnake(f Field, x int, y int, length int, style tcell.Style) Snake {
+func newSnake(f *Field, x int, y int, length int, style tcell.Style) Snake {
 	var snake Snake
-	snake.field = &f
+	snake.field = f
 	snake.head = Cell{x, y}
 	snake.tail = make([]Cell, length-1)
 	snake.style = style
@@ -210,4 +232,39 @@ func (snake *Snake) BorderTeleportation() {
 	} else if snake.head.y >= snake.field.y+snake.field.height {
 		snake.head.y = snake.field.y
 	}
+}
+
+func newApple(f *Field, x int, y int, style tcell.Style) Apple {
+	var apple Apple
+	apple.cell = Cell{x, y}
+	apple.style = style
+	apple.field = f
+	f.apples = append(f.apples, &apple)
+
+	return apple
+}
+
+func (apple *Apple) UpdateApple() {
+	if apple.CheckApple() {
+		apple.cell.x = rand.Intn(apple.field.width) + apple.field.x
+		apple.cell.y = rand.Intn(apple.field.height) + apple.field.y
+	}
+}
+
+func (apple Apple) CheckApple() bool {
+	if apple.cell.x == apple.field.snake.head.x && apple.cell.y == apple.field.snake.head.y {
+		return true
+	}
+
+	for _, cell := range apple.field.snake.tail {
+		if apple.cell.x == cell.x && apple.cell.y == cell.y {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (apple Apple) DrawApple() {
+	apple.cell.DrawCell(*apple.field.screen, AppleSymbol, apple.style)
 }
