@@ -45,7 +45,7 @@ type Field struct {
 	cells  []Cell
 	screen *tcell.Screen
 	snake  *Snake
-	apples []*Apple
+	apples []Apple
 }
 
 func main() {
@@ -115,12 +115,16 @@ func gameCycle(f *Field, ch chan bool) {
 func animationCycle(f *Field) {
 	for {
 		f.DrawField()
-		f.snake.MoveSnake()
-		f.snake.DrawSnake()
 
-		for _, apple := range f.apples {
-			apple.UpdateApple()
-			apple.DrawApple()
+		for i := range f.apples {
+			if f.apples[i].UpdateApple() {
+				f.snake.MoveSnake(true)
+			} else {
+				f.snake.MoveSnake(false)
+			}
+
+			f.snake.DrawSnake()
+			f.apples[i].DrawApple()
 		}
 
 		(*f.screen).Show()
@@ -205,7 +209,7 @@ func (snake Snake) DrawSnake() {
 	}
 }
 
-func (snake *Snake) MoveSnake() {
+func (snake *Snake) MoveSnake(grow bool) {
 	var bufferCell Cell
 
 	for i := range snake.tail {
@@ -213,6 +217,9 @@ func (snake *Snake) MoveSnake() {
 			bufferCell, snake.tail[i] = snake.tail[i], snake.head
 		} else {
 			snake.tail[i], bufferCell = bufferCell, snake.tail[i]
+		}
+		if i == len(snake.tail)-1 && grow {
+			snake.tail = append(snake.tail, bufferCell)
 		}
 	}
 
@@ -239,16 +246,19 @@ func newApple(f *Field, x int, y int, style tcell.Style) Apple {
 	apple.cell = Cell{x, y}
 	apple.style = style
 	apple.field = f
-	f.apples = append(f.apples, &apple)
+	f.apples = append(f.apples, apple)
 
 	return apple
 }
 
-func (apple *Apple) UpdateApple() {
+func (apple *Apple) UpdateApple() bool {
 	if apple.CheckApple() {
 		apple.cell.x = rand.Intn(apple.field.width) + apple.field.x
 		apple.cell.y = rand.Intn(apple.field.height) + apple.field.y
+		return true
 	}
+
+	return false
 }
 
 func (apple Apple) CheckApple() bool {
