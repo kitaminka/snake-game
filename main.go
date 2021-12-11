@@ -10,14 +10,20 @@ type Cell struct {
 	y int
 }
 type Snake struct {
-	head  Cell
-	tail  []Cell
-	field Field
-	style tcell.Style
+	head      Cell
+	tail      []Cell
+	field     Field
+	style     tcell.Style
+	direction struct {
+		x int
+		y int
+	}
 }
 type Field struct {
 	x      int
 	y      int
+	width  int
+	height int
 	style  tcell.Style
 	cells  []Cell
 	screen tcell.Screen
@@ -32,7 +38,7 @@ func main() {
 		log.Fatalf("%+v", err)
 	}
 
-	width, height := s.Size()
+	width, _ := s.Size()
 
 	defStyle := tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorWhite)
 	snakeStyle := tcell.StyleDefault.Background(tcell.ColorDefault).Foreground(tcell.ColorDarkGreen)
@@ -42,9 +48,15 @@ func main() {
 	f := newField(s, width/2-50, 3, 100, 12, defStyle)
 	f.DrawField()
 
-	snake := newSnake(f, width/2, height/2, 3, snakeStyle)
+	snake := newSnake(f, f.x+f.width/2, f.y+f.height/2, 5, snakeStyle)
+	//fmt.Println(snake.tail)
+	//fmt.Println(snake.head)
+	snake.MoveSnake()
+	snake.MoveSnake()
 	snake.DrawSnake()
-
+	//fmt.Println(snake.tail)
+	//fmt.Println(snake.head)
+	//snake.DrawSnake()
 	s.Show()
 }
 
@@ -68,6 +80,8 @@ func newField(s tcell.Screen, x int, y int, width int, height int, style tcell.S
 	var f Field
 	f.x = x
 	f.y = y
+	f.width = width
+	f.height = height
 	f.style = style
 	f.screen = s
 	f.cells = make([]Cell, width*height)
@@ -102,6 +116,8 @@ func newSnake(f Field, x int, y int, length int, style tcell.Style) Snake {
 	snake.head = Cell{x, y}
 	snake.tail = make([]Cell, length-1)
 	snake.style = style
+	snake.direction.y = 0
+	snake.direction.x = 1
 	for i := range snake.tail {
 		snake.tail[i] = Cell{x, y + i + 1}
 	}
@@ -116,6 +132,15 @@ func (snake Snake) DrawSnake() {
 	}
 }
 
-func (snake Snake) MoveSnake() {
-	// Some code here
+func (snake *Snake) MoveSnake() {
+	var bufferCell Cell
+	for i := range snake.tail {
+		if i == 0 {
+			bufferCell, snake.tail[i] = snake.tail[i], snake.head
+		} else {
+			snake.tail[i], bufferCell = bufferCell, snake.tail[i]
+		}
+	}
+	snake.head.x += snake.direction.x
+	snake.head.y += snake.direction.y
 }
