@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gdamore/tcell"
 	"log"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -13,18 +15,18 @@ const SnakeSymbol = '0'
 const AppleSymbol = '0'
 
 const DefaultColor = tcell.ColorWhite
-const SnakeColor = tcell.ColorDarkGreen
+const SnakeColor = tcell.ColorGreenYellow
 const AppleColor = tcell.ColorRed
 
 const StartDelay time.Duration = 100
-const MinDelay time.Duration = 30
+const MinDelay time.Duration = 50
 const DelayChange time.Duration = 10
 const MaxApples = 3
 const NewAppleChance = 5
+const SnakeLength = 5
 
 type Cell struct {
-	x int
-	y int
+	x, y int
 }
 type Snake struct {
 	head      Cell
@@ -32,8 +34,7 @@ type Snake struct {
 	field     *Field
 	style     tcell.Style
 	direction struct {
-		x int
-		y int
+		x, y int
 	}
 	delay time.Duration
 }
@@ -42,16 +43,20 @@ type Apple struct {
 	style tcell.Style
 	field *Field
 }
+type Score struct {
+	x, y  int
+	value int
+	field *Field
+}
 type Field struct {
-	x      int
-	y      int
-	width  int
-	height int
-	style  tcell.Style
-	cells  []Cell
-	screen *tcell.Screen
-	snake  *Snake
-	apples []Apple
+	x, y          int
+	width, height int
+	style         tcell.Style
+	cells         []Cell
+	screen        *tcell.Screen
+	snake         *Snake
+	score         *Score
+	apples        []Apple
 }
 
 func main() {
@@ -69,14 +74,19 @@ func main() {
 	snakeStyle := tcell.StyleDefault.Foreground(SnakeColor)
 	appleStyle := tcell.StyleDefault.Foreground(AppleColor)
 
-	drawText(s, width/2-5, 1, width/2+5, 1, defStyle, "Snake Game")
+	drawText(s, width/2-5, 1, width/2+5, 1, snakeStyle, "Snake")
+	drawText(s, width/2+1, 1, width/2+5, 1, defStyle, "Game")
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	f := newField(&s, width/2-50, 3, 100, 12, nil, defStyle)
-	//f := newField(&s, 0, 0, width, height, nil, defStyle)
-	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, 5, StartDelay, snakeStyle)
+	f := newField(&s, width/2-50, 3, 100, 12, nil, nil, defStyle)
+
+	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, SnakeLength, StartDelay, snakeStyle)
+	score := Score{width/2 - 50, 1, 0, &f}
+
 	f.snake = &snake
+	f.score = &score
+
 	newApple(&f, appleStyle)
 
 	gameOver := make(chan bool)
@@ -87,6 +97,7 @@ func main() {
 	<-gameOver
 
 	s.Fini()
+	fmt.Print("Game Over!\nGame result: " + strconv.Itoa(score.value))
 	os.Exit(0)
 }
 
@@ -138,6 +149,7 @@ func animationCycle(f *Field, gameOver chan bool) {
 
 		f.snake.MoveSnake(grow)
 		f.snake.DrawSnake()
+		f.score.updateScore()
 
 		for _, apple := range f.apples {
 			apple.DrawApple()
@@ -169,7 +181,15 @@ func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string
 	}
 }
 
-func newField(s *tcell.Screen, x int, y int, width int, height int, snake *Snake, style tcell.Style) Field {
+func (score *Score) updateScore() {
+	f := score.field
+
+	score.value = len(f.snake.tail) - SnakeLength + 1
+
+	drawText(*f.screen, score.x, score.y, score.x+len(strconv.Itoa(score.value))+7, score.y, f.style, "Score: "+strconv.Itoa(score.value))
+}
+
+func newField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Score, style tcell.Style) Field {
 	var f Field
 	f.x = x
 	f.y = y
@@ -178,6 +198,7 @@ func newField(s *tcell.Screen, x int, y int, width int, height int, snake *Snake
 	f.style = style
 	f.screen = s
 	f.snake = snake
+	f.score = score
 	f.cells = make([]Cell, width*height)
 
 	var dx, dy int
@@ -204,7 +225,7 @@ func (f Field) DrawField() {
 	}
 }
 
-func newSnake(f *Field, x int, y int, length int, delay time.Duration, style tcell.Style) Snake {
+func newSnake(f *Field, x, y int, length int, delay time.Duration, style tcell.Style) Snake {
 	var snake Snake
 	snake.field = f
 	snake.head = Cell{x, y}
