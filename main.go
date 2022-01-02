@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
-const FieldSymbol = '-'
-const SnakeSymbol = '0'
-const AppleSymbol = '0'
+const FieldSymbol = ' '
+const SnakeSymbol = '▇'
+const BorderSymbol = '▇'
+const AppleSymbol = '●'
 
 const DefaultColor = tcell.ColorWhite
 const SnakeColor = tcell.ColorGreenYellow
@@ -81,8 +82,10 @@ func main() {
 
 	f := newField(&s, width/2-50, 3, 100, 12, nil, nil, defStyle)
 
+	f.DrawBorder(BorderSymbol, defStyle)
+
 	snake := newSnake(&f, f.x+f.width/2, f.y+f.height/2, SnakeLength, StartDelay, snakeStyle)
-	score := Score{width/2 - 50, 1, 0, &f}
+	score := Score{width/2 - 51, 1, 0, &f}
 
 	f.snake = &snake
 	f.score = &score
@@ -222,6 +225,21 @@ func (c Cell) DrawCell(s tcell.Screen, symbol rune, style tcell.Style) {
 func (f Field) DrawField() {
 	for _, c := range f.cells {
 		c.DrawCell(*f.screen, FieldSymbol, f.style)
+	}
+}
+
+func (f Field) DrawBorder(symbol rune, style tcell.Style) {
+	for i := f.x - 1; i < f.x+f.width+1; i++ {
+		(*f.screen).SetContent(i, f.y-1, symbol, nil, style)
+	}
+	for i := f.x - 1; i < f.x+f.width+1; i++ {
+		(*f.screen).SetContent(i, f.y+f.height, symbol, nil, style)
+	}
+	for i := f.y; i < f.y+f.height; i++ {
+		(*f.screen).SetContent(f.x-1, i, symbol, nil, style)
+	}
+	for i := f.y; i < f.y+f.height; i++ {
+		(*f.screen).SetContent(f.x+f.width, i, symbol, nil, style)
 	}
 }
 
