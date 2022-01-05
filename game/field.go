@@ -29,7 +29,7 @@ func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Sco
 }
 
 func (c Cell) DrawCell(s tcell.Screen, symbol rune, style tcell.Style) {
-	s.SetContent(c.x, c.y, symbol, nil, style)
+	s.SetContent(c.X, c.Y, symbol, nil, style)
 }
 
 func (f Field) DrawField() {

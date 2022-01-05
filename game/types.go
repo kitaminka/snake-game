@@ -6,7 +6,7 @@ import (
 )
 
 type Cell struct {
-	x, y int
+	X, Y int
 }
 type Snake struct {
 	Head      Cell

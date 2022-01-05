@@ -29,14 +29,14 @@ func (apple *Apple) MoveApple() {
 	snake := apple.Field.Snake
 
 	for touchSnake {
-		apple.Cell.x = rand.Intn(apple.Field.Width) + apple.Field.X
-		apple.Cell.y = rand.Intn(apple.Field.Height) + apple.Field.Y
+		apple.Cell.X = rand.Intn(apple.Field.Width) + apple.Field.X
+		apple.Cell.Y = rand.Intn(apple.Field.Height) + apple.Field.Y
 
-		if snake.Head.x != apple.Cell.x && snake.Head.y != apple.Cell.y {
+		if snake.Head.X != apple.Cell.X && snake.Head.Y != apple.Cell.Y {
 			touchSnake = false
 		}
 		for _, cell := range snake.Tail {
-			if cell.x != apple.Cell.x && cell.y != apple.Cell.y {
+			if cell.X != apple.Cell.X && cell.Y != apple.Cell.Y {
 				touchSnake = false
 			}
 		}
@@ -44,12 +44,12 @@ func (apple *Apple) MoveApple() {
 }
 
 func (apple Apple) CheckApple() bool {
-	if apple.Cell.x == apple.Field.Snake.Head.x && apple.Cell.y == apple.Field.Snake.Head.y {
+	if apple.Cell.X == apple.Field.Snake.Head.X && apple.Cell.Y == apple.Field.Snake.Head.Y {
 		return true
 	}
 
 	for _, cell := range apple.Field.Snake.Tail {
-		if apple.Cell.x == cell.x && apple.Cell.y == cell.y {
+		if apple.Cell.X == cell.X && apple.Cell.Y == cell.Y {
 			return true
 		}
 	}

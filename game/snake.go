@@ -32,7 +32,7 @@ func (snake Snake) DrawSnake() {
 
 func (snake Snake) CheckSnake() bool {
 	for _, cell := range snake.Tail {
-		if snake.Head.x == cell.x && snake.Head.y == cell.y {
+		if snake.Head.X == cell.X && snake.Head.Y == cell.Y {
 			return true
 		}
 	}
@@ -54,20 +54,20 @@ func (snake *Snake) MoveSnake(grow bool) {
 		}
 	}
 
-	snake.Head.x += snake.Direction.X
-	snake.Head.y += snake.Direction.Y
+	snake.Head.X += snake.Direction.X
+	snake.Head.Y += snake.Direction.Y
 
 	snake.BorderTeleportation()
 }
 
 func (snake *Snake) BorderTeleportation() {
-	if snake.Head.x < snake.Field.X {
-		snake.Head.x = snake.Field.X + snake.Field.Width - 1
-	} else if snake.Head.x >= snake.Field.X+snake.Field.Width {
-		snake.Head.x = snake.Field.X
-	} else if snake.Head.y < snake.Field.Y {
-		snake.Head.y = snake.Field.Y + snake.Field.Height - 1
-	} else if snake.Head.y >= snake.Field.Y+snake.Field.Height {
-		snake.Head.y = snake.Field.Y
+	if snake.Head.X < snake.Field.X {
+		snake.Head.X = snake.Field.X + snake.Field.Width - 1
+	} else if snake.Head.X >= snake.Field.X+snake.Field.Width {
+		snake.Head.X = snake.Field.X
+	} else if snake.Head.Y < snake.Field.Y {
+		snake.Head.Y = snake.Field.Y + snake.Field.Height - 1
+	} else if snake.Head.Y >= snake.Field.Y+snake.Field.Height {
+		snake.Head.Y = snake.Field.Y
 	}
 }
