@@ -5,18 +5,24 @@ import (
 	"time"
 )
 
-const FieldSymbol = ' '
-const SnakeSymbol = '▇'
-const BorderSymbol = '▇'
-const AppleSymbol = '●'
+const (
+	FieldSymbol  = ' '
+	SnakeSymbol  = '▇'
+	BorderSymbol = '▇'
+	AppleSymbol  = '●'
+)
 
-const DefaultColor = tcell.ColorWhite
-const SnakeColor = tcell.ColorGreenYellow
-const AppleColor = tcell.ColorRed
+const (
+	DefaultColor = tcell.ColorWhite
+	SnakeColor   = tcell.ColorGreenYellow
+	AppleColor   = tcell.ColorRed
+)
 
-const StartDelay time.Duration = 100
-const MinDelay time.Duration = 50
-const DelayChange time.Duration = 10
-const MaxApples = 3
-const NewAppleChance = 5
-const SnakeLength = 5
+const (
+	StartDelay     time.Duration = 100
+	MinDelay       time.Duration = 50
+	DelayChange    time.Duration = 10
+	MaxApples                    = 3
+	NewAppleChance               = 5
+	SnakeLength                  = 5
+)

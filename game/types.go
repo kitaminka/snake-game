@@ -9,32 +9,32 @@ type Cell struct {
 	x, y int
 }
 type Snake struct {
-	head      Cell
-	tail      []Cell
-	field     *Field
-	style     tcell.Style
-	direction struct {
-		x, y int
+	Head      Cell
+	Tail      []Cell
+	Field     *Field
+	Style     tcell.Style
+	Direction struct {
+		X, Y int
 	}
-	delay time.Duration
+	Delay time.Duration
 }
 type Apple struct {
-	cell  Cell
-	style tcell.Style
-	field *Field
+	Cell  Cell
+	Style tcell.Style
+	Field *Field
 }
 type Score struct {
-	x, y  int
-	value int
-	field *Field
+	X, Y  int
+	Value int
+	Field *Field
 }
 type Field struct {
-	x, y          int
-	width, height int
-	style         tcell.Style
-	cells         []Cell
-	screen        *tcell.Screen
-	snake         *Snake
-	score         *Score
-	apples        []Apple
+	X, Y          int
+	Width, Height int
+	Style         tcell.Style
+	Cells         []Cell
+	Screen        *tcell.Screen
+	Snake         *Snake
+	Score         *Score
+	Apples        []Apple
 }

@@ -7,10 +7,10 @@ import (
 
 func NewApple(f *Field, style tcell.Style) Apple {
 	var apple Apple
-	apple.style = style
-	apple.field = f
+	apple.Style = style
+	apple.Field = f
 	apple.MoveApple()
-	f.apples = append(f.apples, apple)
+	f.Apples = append(f.Apples, apple)
 
 	return apple
 }
@@ -26,17 +26,17 @@ func (apple *Apple) UpdateApple() bool {
 
 func (apple *Apple) MoveApple() {
 	touchSnake := true
-	snake := apple.field.snake
+	snake := apple.Field.Snake
 
 	for touchSnake {
-		apple.cell.x = rand.Intn(apple.field.width) + apple.field.x
-		apple.cell.y = rand.Intn(apple.field.height) + apple.field.y
+		apple.Cell.x = rand.Intn(apple.Field.Width) + apple.Field.X
+		apple.Cell.y = rand.Intn(apple.Field.Height) + apple.Field.Y
 
-		if snake.head.x != apple.cell.x && snake.head.y != apple.cell.y {
+		if snake.Head.x != apple.Cell.x && snake.Head.y != apple.Cell.y {
 			touchSnake = false
 		}
-		for _, cell := range snake.tail {
-			if cell.x != apple.cell.x && cell.y != apple.cell.y {
+		for _, cell := range snake.Tail {
+			if cell.x != apple.Cell.x && cell.y != apple.Cell.y {
 				touchSnake = false
 			}
 		}
@@ -44,12 +44,12 @@ func (apple *Apple) MoveApple() {
 }
 
 func (apple Apple) CheckApple() bool {
-	if apple.cell.x == apple.field.snake.head.x && apple.cell.y == apple.field.snake.head.y {
+	if apple.Cell.x == apple.Field.Snake.Head.x && apple.Cell.y == apple.Field.Snake.Head.y {
 		return true
 	}
 
-	for _, cell := range apple.field.snake.tail {
-		if apple.cell.x == cell.x && apple.cell.y == cell.y {
+	for _, cell := range apple.Field.Snake.Tail {
+		if apple.Cell.x == cell.x && apple.Cell.y == cell.y {
 			return true
 		}
 	}
@@ -58,5 +58,5 @@ func (apple Apple) CheckApple() bool {
 }
 
 func (apple Apple) DrawApple() {
-	apple.cell.DrawCell(*apple.field.screen, AppleSymbol, apple.style)
+	apple.Cell.DrawCell(*apple.Field.Screen, AppleSymbol, apple.Style)
 }

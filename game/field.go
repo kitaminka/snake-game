@@ -4,20 +4,20 @@ import "github.com/gdamore/tcell"
 
 func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Score, style tcell.Style) Field {
 	var f Field
-	f.x = x
-	f.y = y
-	f.width = width
-	f.height = height
-	f.style = style
-	f.screen = s
-	f.snake = snake
-	f.score = score
-	f.cells = make([]Cell, width*height)
+	f.X = x
+	f.Y = y
+	f.Width = width
+	f.Height = height
+	f.Style = style
+	f.Screen = s
+	f.Snake = snake
+	f.Score = score
+	f.Cells = make([]Cell, width*height)
 
 	var dx, dy int
 
-	for i := range f.cells {
-		f.cells[i] = Cell{x + dx, y + dy}
+	for i := range f.Cells {
+		f.Cells[i] = Cell{x + dx, y + dy}
 		dx++
 		if dx >= width {
 			dx = 0
@@ -33,22 +33,22 @@ func (c Cell) DrawCell(s tcell.Screen, symbol rune, style tcell.Style) {
 }
 
 func (f Field) DrawField() {
-	for _, c := range f.cells {
-		c.DrawCell(*f.screen, FieldSymbol, f.style)
+	for _, c := range f.Cells {
+		c.DrawCell(*f.Screen, FieldSymbol, f.Style)
 	}
 }
 
 func (f Field) DrawBorder(symbol rune, style tcell.Style) {
-	for i := f.x - 1; i < f.x+f.width+1; i++ {
-		(*f.screen).SetContent(i, f.y-1, symbol, nil, style)
+	for i := f.X - 1; i < f.X+f.Width+1; i++ {
+		(*f.Screen).SetContent(i, f.Y-1, symbol, nil, style)
 	}
-	for i := f.x - 1; i < f.x+f.width+1; i++ {
-		(*f.screen).SetContent(i, f.y+f.height, symbol, nil, style)
+	for i := f.X - 1; i < f.X+f.Width+1; i++ {
+		(*f.Screen).SetContent(i, f.Y+f.Height, symbol, nil, style)
 	}
-	for i := f.y; i < f.y+f.height; i++ {
-		(*f.screen).SetContent(f.x-1, i, symbol, nil, style)
+	for i := f.Y; i < f.Y+f.Height; i++ {
+		(*f.Screen).SetContent(f.X-1, i, symbol, nil, style)
 	}
-	for i := f.y; i < f.y+f.height; i++ {
-		(*f.screen).SetContent(f.x+f.width, i, symbol, nil, style)
+	for i := f.Y; i < f.Y+f.Height; i++ {
+		(*f.Screen).SetContent(f.X+f.Width, i, symbol, nil, style)
 	}
 }
