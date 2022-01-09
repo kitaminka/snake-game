@@ -5,6 +5,16 @@ import (
 	"time"
 )
 
+type Game struct {
+	Screen *tcell.Screen
+	Field  *Field
+	Score  *Score
+	Ended  bool
+}
+type Score struct {
+	X, Y  int
+	Value int
+}
 type Cell struct {
 	X, Y int
 }
@@ -23,18 +33,13 @@ type Apple struct {
 	Style tcell.Style
 	Field *Field
 }
-type Score struct {
-	X, Y  int
-	Value int
-	Field *Field
-}
 type Field struct {
+	Screen        *tcell.Screen
+	Game          Game
 	X, Y          int
 	Width, Height int
 	Style         tcell.Style
 	Cells         []Cell
-	Screen        *tcell.Screen
 	Snake         *Snake
-	Score         *Score
 	Apples        []Apple
 }

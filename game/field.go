@@ -2,7 +2,7 @@ package game
 
 import "github.com/gdamore/tcell"
 
-func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Score, style tcell.Style) Field {
+func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, style tcell.Style) Field {
 	var f Field
 	f.X = x
 	f.Y = y
@@ -11,7 +11,6 @@ func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Sco
 	f.Style = style
 	f.Screen = s
 	f.Snake = snake
-	f.Score = score
 	f.Cells = make([]Cell, width*height)
 
 	var dx, dy int

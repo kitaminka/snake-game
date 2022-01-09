@@ -10,6 +10,16 @@ import (
 	"time"
 )
 
+func NewGame(s *tcell.Screen, f *Field, score *Score) Game {
+	var game Game
+	game.Screen = s
+	game.Field = f
+	game.Score = score
+	game.Ended = false
+
+	return game
+}
+
 func StartGame() {
 	s, err := tcell.NewScreen()
 	if err != nil {
