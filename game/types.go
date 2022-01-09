@@ -14,6 +14,7 @@ type Game struct {
 type Score struct {
 	X, Y  int
 	Value int
+	Game  Game
 }
 type Cell struct {
 	X, Y int

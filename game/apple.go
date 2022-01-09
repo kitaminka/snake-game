@@ -5,12 +5,12 @@ import (
 	"math/rand"
 )
 
-func NewApple(f *Field, style tcell.Style) Apple {
+func NewApple(field *Field, style tcell.Style) Apple {
 	var apple Apple
 	apple.Style = style
-	apple.Field = f
+	apple.Field = field
 	apple.MoveApple()
-	f.Apples = append(f.Apples, apple)
+	field.Apples = append(field.Apples, apple)
 
 	return apple
 }
