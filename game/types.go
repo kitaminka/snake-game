@@ -6,15 +6,20 @@ import (
 )
 
 type Game struct {
-	Screen *tcell.Screen
-	Field  *Field
-	Score  *Score
-	Ended  bool
+	Screen        *tcell.Screen
+	Field         *Field
+	Score         *Score
+	Width, Height int
+	Ended         bool
+	Styles
+}
+type Styles struct {
+	DefaultStyle, SnakeStyle, AppleStyle tcell.Style
 }
 type Score struct {
 	X, Y  int
 	Value int
-	Game  Game
+	Game  *Game
 }
 type Cell struct {
 	X, Y int

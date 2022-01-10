@@ -1,21 +1,12 @@
 package game
 
-import (
-	"github.com/gdamore/tcell"
-	"time"
-)
+import "time"
 
 const (
 	FieldSymbol  = ' '
 	SnakeSymbol  = '▇'
 	BorderSymbol = '▇'
 	AppleSymbol  = '●'
-)
-
-const (
-	DefaultColor = tcell.ColorWhite
-	SnakeColor   = tcell.ColorGreenYellow
-	AppleColor   = tcell.ColorRed
 )
 
 const (
