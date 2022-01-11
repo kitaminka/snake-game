@@ -27,6 +27,7 @@ type Styles struct {
 type Configuration struct {
 	StartDelay, MinDelay, DelayChange      time.Duration
 	MaxApples, NewAppleChance, SnakeLength int
+	FieldWidth, FieldHeight                int
 }
 type Score struct {
 	X, Y  int

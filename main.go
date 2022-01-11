@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/kitaminka/snake-game/game"
 	"log"
 	"math/rand"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +24,8 @@ const (
 	MaxApples                    = 3
 	NewAppleChance               = 5
 	SnakeLength                  = 5
+	FieldWidth                   = 100
+	FieldHeight                  = 12
 )
 
 func main() {
@@ -46,12 +51,18 @@ func main() {
 		MaxApples:      MaxApples,
 		NewAppleChance: NewAppleChance,
 		SnakeLength:    SnakeLength,
+		FieldWidth:     FieldWidth,
+		FieldHeight:    FieldHeight,
 	}
 
 	width, height := s.Size()
 
 	g := game.NewGame(&s, nil, nil, width, height, styles, configuration)
 
-	g.InitGame(100, 12)
+	g.InitGame()
 	g.StartGame()
+
+	s.Fini()
+	fmt.Print("Game Over!\nGame result: " + strconv.Itoa(g.Score.Value))
+	os.Exit(0)
 }

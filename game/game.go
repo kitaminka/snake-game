@@ -20,13 +20,10 @@ func NewGame(s *tcell.Screen, f *Field, score *Score, width, height int, styles 
 	return game
 }
 
-func (game *Game) InitGame(fieldWidth, fieldHeight int) {
-	// 100
-	// 12
-
-	field := NewField(game.Screen, game.Width/2-50, 3, fieldWidth, fieldHeight, nil, game.DefaultStyle)
+func (game *Game) InitGame() {
+	field := NewField(game.Screen, game.Width/2-game.FieldWidth/2, 3, game.FieldWidth, game.FieldHeight, nil, game.DefaultStyle)
 	snake := NewSnake(&field, field.X+field.Width/2, field.Y+field.Height/2, game.SnakeLength, game.StartDelay, game.SnakeStyle)
-	score := NewScore(game.Width/2-(fieldWidth/2)-1, 1, game)
+	score := NewScore(game.Width/2-game.FieldWidth/2-1, 1, game)
 
 	field.Snake = &snake
 	game.Score = &score
@@ -46,10 +43,16 @@ func (game Game) StartGame() {
 	go EventCycle(&game, gameOver)
 
 	<-gameOver
+
+	game.Ended = true
 }
 
 func EventCycle(game *Game, gameOver chan bool) {
 	for {
+		if game.Ended {
+			return
+		}
+
 		s := *game.Screen
 		snake := game.Field.Snake
 
@@ -82,6 +85,10 @@ func AnimationCycle(game *Game, gameOver chan bool) {
 	field := game.Field
 
 	for {
+		if game.Ended {
+			return
+		}
+
 		field.DrawField()
 
 		grow := false
