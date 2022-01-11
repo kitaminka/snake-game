@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-func NewSnake(f *Field, x, y int, length int, delay time.Duration, style tcell.Style) Snake {
+func NewSnake(field *Field, x, y int, length int, delay time.Duration, style tcell.Style) Snake {
 	var snake Snake
-	snake.Field = f
+	snake.Field = field
 	snake.Head = Cell{x, y}
 	snake.Tail = make([]Cell, length-1)
 	snake.Style = style

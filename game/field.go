@@ -2,22 +2,21 @@ package game
 
 import "github.com/gdamore/tcell"
 
-func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Score, style tcell.Style) Field {
-	var f Field
-	f.X = x
-	f.Y = y
-	f.Width = width
-	f.Height = height
-	f.Style = style
-	f.Screen = s
-	f.Snake = snake
-	f.Score = score
-	f.Cells = make([]Cell, width*height)
+func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, style tcell.Style) Field {
+	var field Field
+	field.X = x
+	field.Y = y
+	field.Width = width
+	field.Height = height
+	field.Style = style
+	field.Screen = s
+	field.Snake = snake
+	field.Cells = make([]Cell, width*height)
 
 	var dx, dy int
 
-	for i := range f.Cells {
-		f.Cells[i] = Cell{x + dx, y + dy}
+	for i := range field.Cells {
+		field.Cells[i] = Cell{x + dx, y + dy}
 		dx++
 		if dx >= width {
 			dx = 0
@@ -25,30 +24,30 @@ func NewField(s *tcell.Screen, x, y, width, height int, snake *Snake, score *Sco
 		}
 	}
 
-	return f
+	return field
 }
 
 func (c Cell) DrawCell(s tcell.Screen, symbol rune, style tcell.Style) {
 	s.SetContent(c.X, c.Y, symbol, nil, style)
 }
 
-func (f Field) DrawField() {
-	for _, c := range f.Cells {
-		c.DrawCell(*f.Screen, FieldSymbol, f.Style)
+func (field Field) DrawField() {
+	for _, c := range field.Cells {
+		c.DrawCell(*field.Screen, FieldSymbol, field.Style)
 	}
 }
 
-func (f Field) DrawBorder(symbol rune, style tcell.Style) {
-	for i := f.X - 1; i < f.X+f.Width+1; i++ {
-		(*f.Screen).SetContent(i, f.Y-1, symbol, nil, style)
+func (field Field) DrawBorder(symbol rune, style tcell.Style) {
+	for i := field.X - 1; i < field.X+field.Width+1; i++ {
+		(*field.Screen).SetContent(i, field.Y-1, symbol, nil, style)
 	}
-	for i := f.X - 1; i < f.X+f.Width+1; i++ {
-		(*f.Screen).SetContent(i, f.Y+f.Height, symbol, nil, style)
+	for i := field.X - 1; i < field.X+field.Width+1; i++ {
+		(*field.Screen).SetContent(i, field.Y+field.Height, symbol, nil, style)
 	}
-	for i := f.Y; i < f.Y+f.Height; i++ {
-		(*f.Screen).SetContent(f.X-1, i, symbol, nil, style)
+	for i := field.Y; i < field.Y+field.Height; i++ {
+		(*field.Screen).SetContent(field.X-1, i, symbol, nil, style)
 	}
-	for i := f.Y; i < f.Y+f.Height; i++ {
-		(*f.Screen).SetContent(f.X+f.Width, i, symbol, nil, style)
+	for i := field.Y; i < field.Y+field.Height; i++ {
+		(*field.Screen).SetContent(field.X+field.Width, i, symbol, nil, style)
 	}
 }

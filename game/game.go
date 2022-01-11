@@ -1,62 +1,60 @@
 package game
 
 import (
-	"fmt"
 	"github.com/gdamore/tcell"
-	"log"
 	"math/rand"
-	"os"
-	"strconv"
 	"time"
 )
 
-func StartGame() {
-	s, err := tcell.NewScreen()
-	if err != nil {
-		log.Fatalf("%+v", err)
-	}
-	if err := s.Init(); err != nil {
-		log.Fatalf("%+v", err)
-	}
+func NewGame(s *tcell.Screen, f *Field, score *Score, width, height int, styles Styles, configuraion Configuration) Game {
+	var game Game
+	game.Screen = s
+	game.Field = f
+	game.Score = score
+	game.Ended = false
+	game.Width = width
+	game.Height = height
+	game.Styles = styles
+	game.Configuration = configuraion
 
-	width, _ := s.Size()
+	return game
+}
 
-	defStyle := tcell.StyleDefault.Foreground(DefaultColor)
-	snakeStyle := tcell.StyleDefault.Foreground(SnakeColor)
-	appleStyle := tcell.StyleDefault.Foreground(AppleColor)
+func (game *Game) InitGame() {
+	field := NewField(game.Screen, game.Width/2-game.FieldWidth/2, 3, game.FieldWidth, game.FieldHeight, nil, game.DefaultStyle)
+	snake := NewSnake(&field, field.X+field.Width/2, field.Y+field.Height/2, game.SnakeLength, game.StartDelay, game.SnakeStyle)
+	score := NewScore(game.Width/2-game.FieldWidth/2-1, 1, game)
 
-	DrawText(s, width/2-5, 1, width/2+5, 1, snakeStyle, "Snake")
-	DrawText(s, width/2+1, 1, width/2+5, 1, defStyle, "Game")
+	field.Snake = &snake
+	game.Score = &score
+	game.Field = &field
 
-	rand.Seed(time.Now().UTC().UnixNano())
+	NewApple(&field, game.AppleStyle)
+}
 
-	f := NewField(&s, width/2-50, 3, 100, 12, nil, nil, defStyle)
-
-	f.DrawBorder(BorderSymbol, defStyle)
-
-	snake := NewSnake(&f, f.X+f.Width/2, f.Y+f.Height/2, SnakeLength, StartDelay, snakeStyle)
-	score := Score{width/2 - 51, 1, 0, &f}
-
-	f.Snake = &snake
-	f.Score = &score
-
-	NewApple(&f, appleStyle)
+func (game Game) StartGame() {
+	DrawText(*game.Screen, game.Width/2-5, 1, game.Width/2+5, 1, game.SnakeStyle, "Snake")
+	DrawText(*game.Screen, game.Width/2+1, 1, game.Width/2+5, 1, game.DefaultStyle, "Game")
+	game.Field.DrawBorder(BorderSymbol, game.DefaultStyle)
 
 	gameOver := make(chan bool)
 
-	go AnimationCycle(&f, gameOver)
-	go EventCycle(&f, gameOver)
+	go AnimationCycle(&game, gameOver)
+	go EventCycle(&game, gameOver)
 
 	<-gameOver
 
-	s.Fini()
-	fmt.Print("Game Over!\nGame result: " + strconv.Itoa(score.Value))
-	os.Exit(0)
+	game.Ended = true
 }
 
-func EventCycle(f *Field, gameOver chan bool) {
+func EventCycle(game *Game, gameOver chan bool) {
 	for {
-		s := *f.Screen
+		if game.Ended {
+			return
+		}
+
+		s := *game.Screen
+		snake := game.Field.Snake
 
 		ev := s.PollEvent()
 
@@ -66,65 +64,63 @@ func EventCycle(f *Field, gameOver chan bool) {
 		case *tcell.EventKey:
 			if ev.Key() == tcell.KeyCtrlC {
 				gameOver <- true
-			} else if ev.Key() == tcell.KeyDown && (f.Snake.Direction.X != 0 && f.Snake.Direction.Y != 1) {
-				f.Snake.Direction.Y = 1
-				f.Snake.Direction.X = 0
-			} else if ev.Key() == tcell.KeyUp && (f.Snake.Direction.X != 0 && f.Snake.Direction.Y != -1) {
-				f.Snake.Direction.Y = -1
-				f.Snake.Direction.X = 0
-			} else if ev.Key() == tcell.KeyRight && (f.Snake.Direction.X != 1 && f.Snake.Direction.Y != 0) {
-				f.Snake.Direction.Y = 0
-				f.Snake.Direction.X = 1
-			} else if ev.Key() == tcell.KeyLeft && (f.Snake.Direction.X != -1 && f.Snake.Direction.Y != 0) {
-				f.Snake.Direction.Y = 0
-				f.Snake.Direction.X = -1
+			} else if ev.Key() == tcell.KeyDown && (snake.Direction.X != 0 && snake.Direction.Y != 1) {
+				snake.Direction.Y = 1
+				snake.Direction.X = 0
+			} else if ev.Key() == tcell.KeyUp && (snake.Direction.X != 0 && snake.Direction.Y != -1) {
+				snake.Direction.Y = -1
+				snake.Direction.X = 0
+			} else if ev.Key() == tcell.KeyRight && (snake.Direction.X != 1 && snake.Direction.Y != 0) {
+				snake.Direction.Y = 0
+				snake.Direction.X = 1
+			} else if ev.Key() == tcell.KeyLeft && (snake.Direction.X != -1 && snake.Direction.Y != 0) {
+				snake.Direction.Y = 0
+				snake.Direction.X = -1
 			}
 		}
 	}
 }
 
-func AnimationCycle(f *Field, gameOver chan bool) {
+func AnimationCycle(game *Game, gameOver chan bool) {
+	field := game.Field
+
 	for {
-		f.DrawField()
+		if game.Ended {
+			return
+		}
+
+		field.DrawField()
 
 		grow := false
 
-		for i := range f.Apples {
-			if f.Apples[i].UpdateApple() {
+		for i := range field.Apples {
+			if field.Apples[i].UpdateApple() {
 				grow = true
-				if f.Snake.Delay > MinDelay {
-					f.Snake.Delay -= DelayChange
+				if field.Snake.Delay > game.MinDelay {
+					field.Snake.Delay -= game.DelayChange
 				}
-				if len(f.Apples) < MaxApples && rand.Intn(NewAppleChance) == 1 {
-					NewApple(f, f.Apples[i].Style)
+				if len(field.Apples) < game.MaxApples && rand.Intn(game.NewAppleChance) == 1 {
+					NewApple(field, field.Apples[i].Style)
 				}
 			}
 		}
 
-		f.Snake.MoveSnake(grow)
-		f.Snake.DrawSnake()
-		f.Score.UpdateScore()
+		field.Snake.MoveSnake(grow)
+		field.Snake.DrawSnake()
+		game.Score.UpdateScore()
 
-		for _, apple := range f.Apples {
+		for _, apple := range field.Apples {
 			apple.DrawApple()
 		}
 
-		if f.Snake.CheckSnake() {
+		if field.Snake.CheckSnake() {
 			gameOver <- true
 		}
 
-		(*f.Screen).Show()
+		(*field.Screen).Show()
 
-		<-time.After(time.Millisecond * f.Snake.Delay)
+		<-time.After(time.Millisecond * field.Snake.Delay)
 	}
-}
-
-func (score *Score) UpdateScore() {
-	f := score.Field
-
-	score.Value = len(f.Snake.Tail) - SnakeLength + 1
-
-	DrawText(*f.Screen, score.X, score.Y, score.X+len(strconv.Itoa(score.Value))+7, score.Y, f.Style, "Score: "+strconv.Itoa(score.Value))
 }
 
 func DrawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
