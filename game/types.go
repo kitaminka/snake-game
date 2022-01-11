@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+const (
+	FieldSymbol  = ' '
+	SnakeSymbol  = '▇'
+	BorderSymbol = '▇'
+	AppleSymbol  = '●'
+)
+
 type Game struct {
 	Screen        *tcell.Screen
 	Field         *Field
@@ -12,9 +19,14 @@ type Game struct {
 	Width, Height int
 	Ended         bool
 	Styles
+	Configuration
 }
 type Styles struct {
 	DefaultStyle, SnakeStyle, AppleStyle tcell.Style
+}
+type Configuration struct {
+	StartDelay, MinDelay, DelayChange      time.Duration
+	MaxApples, NewAppleChance, SnakeLength int
 }
 type Score struct {
 	X, Y  int

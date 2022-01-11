@@ -3,11 +3,10 @@ package game
 import (
 	"github.com/gdamore/tcell"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
-func NewGame(s *tcell.Screen, f *Field, score *Score, width, height int, styles Styles) Game {
+func NewGame(s *tcell.Screen, f *Field, score *Score, width, height int, styles Styles, configuraion Configuration) Game {
 	var game Game
 	game.Screen = s
 	game.Field = f
@@ -16,8 +15,24 @@ func NewGame(s *tcell.Screen, f *Field, score *Score, width, height int, styles 
 	game.Width = width
 	game.Height = height
 	game.Styles = styles
+	game.Configuration = configuraion
 
 	return game
+}
+
+func (game *Game) InitGame(fieldWidth, fieldHeight int) {
+	// 100
+	// 12
+
+	field := NewField(game.Screen, game.Width/2-50, 3, fieldWidth, fieldHeight, nil, game.DefaultStyle)
+	snake := NewSnake(&field, field.X+field.Width/2, field.Y+field.Height/2, game.SnakeLength, game.StartDelay, game.SnakeStyle)
+	score := NewScore(game.Width/2-(fieldWidth/2)-1, 1, game)
+
+	field.Snake = &snake
+	game.Score = &score
+	game.Field = &field
+
+	NewApple(&field, game.AppleStyle)
 }
 
 func (game Game) StartGame() {
@@ -74,10 +89,10 @@ func AnimationCycle(game *Game, gameOver chan bool) {
 		for i := range field.Apples {
 			if field.Apples[i].UpdateApple() {
 				grow = true
-				if field.Snake.Delay > MinDelay {
-					field.Snake.Delay -= DelayChange
+				if field.Snake.Delay > game.MinDelay {
+					field.Snake.Delay -= game.DelayChange
 				}
-				if len(field.Apples) < MaxApples && rand.Intn(NewAppleChance) == 1 {
+				if len(field.Apples) < game.MaxApples && rand.Intn(game.NewAppleChance) == 1 {
 					NewApple(field, field.Apples[i].Style)
 				}
 			}
@@ -99,14 +114,6 @@ func AnimationCycle(game *Game, gameOver chan bool) {
 
 		<-time.After(time.Millisecond * field.Snake.Delay)
 	}
-}
-
-func (score *Score) UpdateScore() {
-	field := score.Game.Field
-
-	score.Value = len(field.Snake.Tail) - SnakeLength + 1
-
-	DrawText(*field.Screen, score.X, score.Y, score.X+len(strconv.Itoa(score.Value))+7, score.Y, field.Style, "Score: "+strconv.Itoa(score.Value))
 }
 
 func DrawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {

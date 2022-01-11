@@ -39,17 +39,19 @@ func main() {
 		SnakeStyle:   tcell.StyleDefault.Foreground(SnakeColor),
 		AppleStyle:   tcell.StyleDefault.Foreground(AppleColor),
 	}
+	configuration := game.Configuration{
+		StartDelay:     StartDelay,
+		MinDelay:       MinDelay,
+		DelayChange:    DelayChange,
+		MaxApples:      MaxApples,
+		NewAppleChance: NewAppleChance,
+		SnakeLength:    SnakeLength,
+	}
+
 	width, height := s.Size()
 
-	g := game.NewGame(&s, nil, nil, width, height, styles)
-	f := game.NewField(&s, width/2-50, 3, 100, 12, nil, styles.DefaultStyle)
-	snake := game.NewSnake(&f, f.X+f.Width/2, f.Y+f.Height/2, SnakeLength, StartDelay, styles.SnakeStyle)
-	score := game.Score{X: width/2 - 51, Y: 1, Game: &g}
+	g := game.NewGame(&s, nil, nil, width, height, styles, configuration)
 
-	f.Snake = &snake
-	g.Score = &score
-	g.Field = &f
-
-	game.NewApple(&f, styles.AppleStyle)
+	g.InitGame(100, 12)
 	g.StartGame()
 }
