@@ -63,6 +63,6 @@ func main() {
 	g.StartGame()
 
 	s.Fini()
-	fmt.Print("Game Over!\nGame result: " + strconv.Itoa(g.Score.Value))
+	fmt.Printf("Game Over!\nGame result: %v", strconv.Itoa(g.Score.Value))
 	os.Exit(0)
 }
